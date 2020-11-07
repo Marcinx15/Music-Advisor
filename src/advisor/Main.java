@@ -3,13 +3,15 @@ package advisor;
 import java.util.Scanner;
 
 public class Main {
+
     public static void main(String[] args) {
-        mainMenu();
+        mainMenu(args);
     }
 
-    public static void mainMenu(){
+    public static void mainMenu(String[] args){
         Scanner in = new Scanner(System.in);
         User user = new User();
+
         while (true) {
             String userInput = in.nextLine().toLowerCase();
             String[] inputParts = userInput.split(" ");
@@ -18,8 +20,7 @@ public class Main {
 
             switch (command) {
                 case "auth":
-                    authorize(user);
-                    System.out.println("---SUCCESS---");
+                    authorization(user, args);
                     break;
                 case "new":
                     showNewReleases(user);
@@ -40,9 +41,16 @@ public class Main {
         }
     }
 
+    public static void authorization(User user, String[] args) {
+        if (args.length == 2 && "-access".equals(args[0])) {
+            SpotifyUtils.setSpotifyAccessServerPoint(args[1]);
+        }
+        String response = user.getAccessToken(user.authorize());
+        System.out.println("response:");
+        System.out.println(response);
+    }
 
-
-    public static void showNewReleases(User user){
+    public static void showNewReleases(User user) {
         if (user.isAuthorizedToSpotify()) {
             System.out.println("---NEW RELEASES---\n" +
                     "Mountains [Sia, Diplo, Labrinth]\n" +
@@ -54,7 +62,7 @@ public class Main {
         }
     }
 
-    public static void showFeatured(User user){
+    public static void showFeatured(User user) {
         if (user.isAuthorizedToSpotify()) {
             System.out.println("---FEATURED---\n" +
                     "Mellow Morning\n" +
@@ -66,7 +74,7 @@ public class Main {
         }
     }
 
-    public static void showCategories(User user){
+    public static void showCategories(User user) {
         if (user.isAuthorizedToSpotify()) {
             System.out.println("---CATEGORIES---\n" +
                     "Top Lists\n" +
@@ -94,11 +102,4 @@ public class Main {
         return "Please, provide access for application.";
     }
 
-    public static void authorize(User user) {
-        StringBuilder sb = new StringBuilder("https://accounts.spotify.com/authorize?");
-        sb.append("client_id=b2627d0489ab45dfb279b77ef0124f29&");
-        sb.append("redirect_uri=http://localhost:8080&response_type=code");
-        user.setAuthorizedToSpotify(true);
-        System.out.println(sb.toString());
-    }
 }
