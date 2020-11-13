@@ -32,7 +32,7 @@ public class LocalHttpServer {
                 String requestQuery = httpExchange.getRequestURI().getQuery();
                 String response = "";
 
-                if (requestQuery == null || SpotifyUtils.isErrorInRequest(requestQuery)) {
+                if (requestQuery == null || SpotifyUtils.isErrorMessage(requestQuery)) {
                     response = "Authorization code not found. Try again.";
                 } else if (SpotifyUtils.isCodeInRequest(requestQuery)) {
                     response = "Got the code. Return back to your program.";

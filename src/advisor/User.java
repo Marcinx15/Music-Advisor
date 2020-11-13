@@ -9,6 +9,15 @@ import java.net.http.HttpResponse;
 public class User {
     private boolean authorizedToSpotify;
     private String spotifyCode;
+    private String spotifyAccessToken;
+
+    public void setSpotifyAccessToken(String spotifyAccessToken) {
+        this.spotifyAccessToken = spotifyAccessToken;
+    }
+
+    public String getSpotifyAccessToken() {
+        return spotifyAccessToken;
+    }
 
     public User() {
         authorizedToSpotify = false;
@@ -44,15 +53,15 @@ public class User {
         return server;
     }
 
-    public String getAccessToken(LocalHttpServer server) {
-        System.out.println("making http request for access_token...");
+    public String requestAccessToken(LocalHttpServer server) {
+        System.out.println("Making http request for access_token...");
 
         HttpClient client = HttpClient.newBuilder().build();
 
         HttpRequest request = HttpRequest.newBuilder()
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Authorization", "Basic " + SpotifyUtils.encodeClientIdAndSecretKey())
-                .uri(URI.create(SpotifyUtils.URL + "/api/token"))
+                .uri(URI.create(SpotifyUtils.AUTHORIZATION_URL + "/api/token"))
                 .POST(HttpRequest.BodyPublishers.ofString("grant_type=authorization_code&code="
                         + spotifyCode + "&redirect_uri=" + server.getURI()))
                 .build();
@@ -70,4 +79,7 @@ public class User {
     public void setSpotifyCode(String spotifyCode) {
         this.spotifyCode = spotifyCode;
     }
+
+
+
 }
