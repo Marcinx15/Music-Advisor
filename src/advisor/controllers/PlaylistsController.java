@@ -1,26 +1,31 @@
-package advisor;
+package advisor.controllers;
 
+import advisor.SpotifyUtils;
+import advisor.User;
+import advisor.models.CategoriesModel;
+import advisor.models.PlaylistsModel;
+import advisor.views.CategoriesView;
+import advisor.views.PlaylistsView;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-public class PlaylistsSection extends Section {
-    private final String categoryType;
-    private final Map<String, String> nameToURL = new LinkedHashMap<>();
 
-    public PlaylistsSection(String categoryType) {
-        this.categoryType = categoryType;
+public class PlaylistsController implements Controller {
+    private final PlaylistsModel model;
+    private final PlaylistsView view;
+
+    public PlaylistsController(PlaylistsModel model, PlaylistsView view) {
+        this.model = model;
+        this.view = view;
     }
 
     @Override
-    public HttpResponse<String> send(User user) throws IOException, InterruptedException {
+    public HttpResponse<String> sendRequest(User user) throws IOException, InterruptedException {
         String categoryID = getCurrentPlaylistID(user);
         if  ("Unknown".equals(categoryID)){
             System.out.println("Unknown category name.");
@@ -51,23 +56,18 @@ public class PlaylistsSection extends Section {
     }
 
     private String getCurrentPlaylistID(User user) throws IOException, InterruptedException {
-        CategorySection categorySection = new CategorySection();
-        categorySection.handleResponse(categorySection.send(user));
-        return categorySection.getIdForCategory(categoryType);
+        CategoriesController categoriesController = new CategoriesController(new CategoriesModel(), new CategoriesView());
+        categoriesController.handleResponse(categoriesController.sendRequest(user));
+        return categoriesController.getCategoryId(model.getCategoryType());
     }
 
     private void savePlaylists(JsonArray jsonPlaylists) {
-        jsonPlaylists.forEach(playlist -> nameToURL.put(playlist.getAsJsonObject().get("name").getAsString(),
+        jsonPlaylists.forEach(playlist -> model.addPlaylist(playlist.getAsJsonObject().get("name").getAsString(),
                 playlist.getAsJsonObject().getAsJsonObject("external_urls").get("spotify").getAsString()));
     }
 
-    @Override
-    public void printSection() {
-        nameToURL.forEach((k,v) -> {
-            System.out.println(k);
-            System.out.println(v);
-            System.out.println();
-        });
+    public void updateView() {
+        view.printPlaylists(model.getPlaylistsUrl());
     }
 
 }

@@ -1,4 +1,16 @@
-package advisor;
+package advisor.controllers;
+
+import advisor.SpotifyConnection;
+import advisor.SpotifyUtils;
+import advisor.User;
+import advisor.models.CategoriesModel;
+import advisor.models.FeaturedPlaylistsModel;
+import advisor.models.NewSongsModel;
+import advisor.models.PlaylistsModel;
+import advisor.views.CategoriesView;
+import advisor.views.FeaturedPlaylistsView;
+import advisor.views.NewSongsView;
+import advisor.views.PlaylistsView;
 
 import java.util.Arrays;
 import java.util.Scanner;
@@ -21,17 +33,18 @@ public class Menu {
                     authorization(user, args);
                     break;
                 case "new":
-                    showSection(connection, new NewSongsSection());
+                    showSection(connection, new NewSongsController(new NewSongsModel(), new NewSongsView()));
                     break;
                 case "featured":
-                    showSection(connection, new FeaturedPlaylistsSection());
+                    showSection(connection,
+                            new FeaturedPlaylistsController(new FeaturedPlaylistsModel(), new FeaturedPlaylistsView()));
                     break;
                 case "categories":
-                    showSection(connection, new CategorySection());
+                    showSection(connection, new CategoriesController(new CategoriesModel(), new CategoriesView()));
                     break;
                 case "playlists":
                     String category = Arrays.stream(inputParts).skip(1).collect(Collectors.joining(" "));
-                    showSection(connection, new PlaylistsSection(category));
+                    showSection(connection, new PlaylistsController(new PlaylistsModel(category), new PlaylistsView()));
                     break;
                 case "exit":
                     return;
@@ -39,10 +52,10 @@ public class Menu {
         }
     }
 
-    public static void showSection (SpotifyConnection connection, Section section) {
+    public static void showSection (SpotifyConnection connection, Controller controller) {
         if (connection.getUser().isAuthorizedToSpotify()) {
-            connection.getUserSpecificData(section);
-            section.printSection();
+            connection.getUserSpecificData(controller);
+            controller.updateView();
         } else {
             System.out.println(noAccessMessage());
         }

@@ -1,5 +1,7 @@
 package advisor;
 
+import advisor.controllers.RequestHandler;
+
 import java.io.IOException;
 
 public class SpotifyConnection {
@@ -16,7 +18,7 @@ public class SpotifyConnection {
 
     public void getUserSpecificData(RequestHandler handler) {
         try {
-            handler.handleResponse(handler.send(user));
+            handler.handleResponse(handler.sendRequest(user));
         } catch (IOException | InterruptedException exception) {
             exception.printStackTrace();
         }

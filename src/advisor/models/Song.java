@@ -1,4 +1,4 @@
-package advisor;
+package advisor.models;
 
 import java.util.ArrayList;
 import java.util.Arrays;

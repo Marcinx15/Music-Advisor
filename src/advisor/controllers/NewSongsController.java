@@ -1,21 +1,30 @@
-package advisor;
+package advisor.controllers;
 
+import advisor.models.Song;
+import advisor.SpotifyUtils;
+import advisor.User;
+import advisor.models.NewSongsModel;
+import advisor.views.NewSongsView;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-public class NewSongsSection extends Section {
-    private final Map<Song, String> songs = new LinkedHashMap<>();
+
+public class NewSongsController implements Controller{
+    private final NewSongsModel model;
+    private final NewSongsView view;
+
+    public NewSongsController(NewSongsModel model, NewSongsView view) {
+        this.model = model;
+        this.view = view;
+    }
 
     @Override
-    public HttpResponse<String> send(User user) throws IOException, InterruptedException {
+    public HttpResponse<String> sendRequest(User user) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder().build();
         HttpRequest request = SpotifyUtils.requestBuilder(user, "/v1/browse/new-releases");
         return client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -33,7 +42,7 @@ public class NewSongsSection extends Section {
         albums.forEach(album ->{
             Song song = new Song(album.getAsJsonObject().get("name").getAsString());
             addArtistsToSong(song, album.getAsJsonObject().getAsJsonArray("artists"));
-            songs.put(song, album.getAsJsonObject().get("external_urls").getAsJsonObject().get("spotify").getAsString());
+            model.addSong(song, album.getAsJsonObject().get("external_urls").getAsJsonObject().get("spotify").getAsString());
         });
     }
 
@@ -41,14 +50,8 @@ public class NewSongsSection extends Section {
         artists.forEach(artist -> song.addArtists(artist.getAsJsonObject().get("name").getAsString()));
     }
 
-    @Override
-    public void printSection() {
-        songs.forEach((song, url) ->{
-            System.out.println(song.getTitle());
-            System.out.println(song.getArtists());
-            System.out.println(url);
-            System.out.println();
-        });
+    public void updateView() {
+        view.printNewSongs(model.getSongsUrl());
     }
 
 }
