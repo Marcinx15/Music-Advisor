@@ -1,7 +1,6 @@
 package advisor.controllers;
 
-import advisor.models.Song;
-import advisor.SpotifyUtils;
+import advisor.Song;
 import advisor.User;
 import advisor.models.NewSongsModel;
 import advisor.views.NewSongsView;
@@ -9,12 +8,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 
-public class NewSongsController implements Controller{
+
+public class NewSongsController extends Controller {
+
+    private static final String URL = "/v1/browse/new-releases";
+
     private final NewSongsModel model;
     private final NewSongsView view;
 
@@ -25,9 +26,7 @@ public class NewSongsController implements Controller{
 
     @Override
     public HttpResponse<String> sendRequest(User user) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder().build();
-        HttpRequest request = SpotifyUtils.requestBuilder(user, "/v1/browse/new-releases");
-        return client.send(request, HttpResponse.BodyHandlers.ofString());
+        return sendRequest(user, URL);
     }
 
     @Override
@@ -44,14 +43,34 @@ public class NewSongsController implements Controller{
             addArtistsToSong(song, album.getAsJsonObject().getAsJsonArray("artists"));
             model.addSong(song, album.getAsJsonObject().get("external_urls").getAsJsonObject().get("spotify").getAsString());
         });
+        view.getPagination().calculateNumberOfPages(model.getNumberOfElements());
     }
 
     private void addArtistsToSong(Song song, JsonArray artists){
         artists.forEach(artist -> song.addArtists(artist.getAsJsonObject().get("name").getAsString()));
     }
 
-    public void updateView() {
-        view.printNewSongs(model.getSongsUrl());
+    @Override
+    public String[] navigateSection() {
+        view.printNextPage(model.getSongsUrl());
+
+        while (true) {
+            String[] inputParts = Controller.readUserInput();
+            String command = inputParts[0];
+
+            switch (command) {
+                case "next":
+                    view.printNextPage(model.getSongsUrl());
+                    break;
+                case "prev":
+                    view.printPrevPage(model.getSongsUrl());
+                    break;
+                default:
+                    return inputParts;
+            }
+
+        }
     }
+
 
 }

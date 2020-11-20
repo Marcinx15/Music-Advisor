@@ -13,4 +13,9 @@ public class FeaturedPlaylistsModel {
     public void addPlaylist(String playlistName, String playlistUrl) {
         playlistsUrl.put(playlistName, playlistUrl);
     }
+
+    public int getNumberOfElements() {
+        return playlistsUrl.size();
+    }
+
 }

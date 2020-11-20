@@ -23,4 +23,8 @@ public class PlaylistsModel {
         playlistsUrl.put(playlistName, playlistUrl);
     }
 
+    public int getNumberOfElements() {
+        return playlistsUrl.size();
+    }
+
 }

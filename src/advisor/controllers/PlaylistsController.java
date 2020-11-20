@@ -1,6 +1,6 @@
 package advisor.controllers;
 
-import advisor.SpotifyUtils;
+import advisor.Pagination;
 import advisor.User;
 import advisor.models.CategoriesModel;
 import advisor.models.PlaylistsModel;
@@ -10,12 +10,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 
-public class PlaylistsController implements Controller {
+public class PlaylistsController extends Controller {
     private final PlaylistsModel model;
     private final PlaylistsView view;
 
@@ -31,10 +29,7 @@ public class PlaylistsController implements Controller {
             System.out.println("Unknown category name.");
             return null;
         }
-        HttpClient client = HttpClient.newBuilder().build();
-        HttpRequest request =
-                SpotifyUtils.requestBuilder(user, "/v1/browse/categories/" + categoryID + "/playlists");
-        return client.send(request, HttpResponse.BodyHandlers.ofString());
+        return sendRequest(user, "/v1/browse/categories/" + categoryID + "/playlists");
     }
 
     @Override
@@ -56,7 +51,8 @@ public class PlaylistsController implements Controller {
     }
 
     private String getCurrentPlaylistID(User user) throws IOException, InterruptedException {
-        CategoriesController categoriesController = new CategoriesController(new CategoriesModel(), new CategoriesView());
+        CategoriesController categoriesController = new CategoriesController(
+                new CategoriesModel(), new CategoriesView(new Pagination()));
         categoriesController.handleResponse(categoriesController.sendRequest(user));
         return categoriesController.getCategoryId(model.getCategoryType());
     }
@@ -64,10 +60,29 @@ public class PlaylistsController implements Controller {
     private void savePlaylists(JsonArray jsonPlaylists) {
         jsonPlaylists.forEach(playlist -> model.addPlaylist(playlist.getAsJsonObject().get("name").getAsString(),
                 playlist.getAsJsonObject().getAsJsonObject("external_urls").get("spotify").getAsString()));
+        view.getPagination().calculateNumberOfPages(model.getNumberOfElements());
     }
 
-    public void updateView() {
-        view.printPlaylists(model.getPlaylistsUrl());
+    @Override
+    public String[] navigateSection() {
+        view.printNextPage(model.getPlaylistsUrl());
+
+        while (true) {
+            String[] inputParts = Controller.readUserInput();
+            String command = inputParts[0];
+
+            switch (command) {
+                case "next":
+                    view.printNextPage(model.getPlaylistsUrl());
+                    break;
+                case "prev":
+                    view.printPrevPage(model.getPlaylistsUrl());
+                    break;
+                default:
+                    return inputParts;
+            }
+
+        }
     }
 
 }

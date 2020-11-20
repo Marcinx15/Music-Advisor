@@ -19,4 +19,8 @@ public class CategoriesModel {
         return categoriesId.getOrDefault(name, "Unknown");
     }
 
+    public int getNumberOfElements() {
+        return categoriesId.size();
+    }
+
 }
